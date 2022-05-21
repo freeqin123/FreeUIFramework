@@ -1,0 +1,24 @@
+using FreeFramework;
+using UnityEngine.UI;
+using UnityEngine;
+
+namespace #命名空间#
+{
+    public class #类名# : BaseUIForm
+    {
+        private void Awake()
+        {
+            SetCurrentUIType(new UIType(UIFormType.#类型#, UIFormShowMode.#显示#, UIFormPenetrability.#穿透#));
+        }
+
+        public override void HideUI()
+        {
+            base.HideUI();
+        }
+
+        public override void ShowUI()
+        {
+            base.ShowUI();
+        }
+    }
+}

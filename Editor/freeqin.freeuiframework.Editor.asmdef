@@ -1,0 +1,16 @@
+{
+    "name": "freeqin.freeuiframework.Editor",
+    "rootNamespace": "",
+    "references": [
+        "GUID:4c18c3bba1ae2664c9ee1a71dae6326b"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
