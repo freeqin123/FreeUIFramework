@@ -26,7 +26,7 @@ namespace FreeFramework.Editor
         private const string uiFormTypeTag = "#类型#";
         private const string uiFormShowTag = "#显示#";
         private const string uiFormPenetrabilityTag = "#穿透#";
-
+        private const string nameSpaceID = "scriptsNamespace";
         #region 设置资源路径相关
         private bool isOpenConfig = true;
         #endregion
@@ -85,7 +85,7 @@ namespace FreeFramework.Editor
             //更新路径
             jsonPath = $"Assets/Resources/{UIConstant.uiConfigJsonPath}.json";
             configAssetPath = $"Assets/Resources/{UIConstant.uiConfigAssetPath}.asset";
-            nameSpaceName = EditorPrefs.GetString("scriptsNamespace","MyGame");
+            nameSpaceName = EditorPrefs.GetString(nameSpaceID, "MyGame");
 
             UpdateConfigLoadType();
         }
@@ -105,7 +105,7 @@ namespace FreeFramework.Editor
         private void OnDestroy()
         {
             //存储命名空间信息
-            EditorPrefs.SetString("scriptsNamespace", nameSpaceName);
+            EditorPrefs.SetString(nameSpaceID, nameSpaceName);
         }
 
         private void ONGUIHandler()

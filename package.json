@@ -1,6 +1,6 @@
 {
 	"name": "com.freeqin.freeuiframework",
-	"version": "0.0.2",
+	"version": "0.1.0",
 	"unity": "2019.1",
 	"displayName": "FreeUIFramework",
 	"description": "FreeUIFrameworkUI框架，本框架用于Unity程序的UI系统管理。",
