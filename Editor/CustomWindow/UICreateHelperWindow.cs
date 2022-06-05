@@ -3,10 +3,12 @@ using UnityEngine;
 using UnityEditor;
 using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
+using UnityEngine.UI;
 using Object = UnityEngine.Object;
 using System.Reflection;
 using System;
 using System.IO;
+using UnityEngine.EventSystems;
 
 namespace FreeFramework.Editor
 {
@@ -33,6 +35,10 @@ namespace FreeFramework.Editor
 
         #region 创建资源路径相关
         private bool isOpenCreate = true;
+        #endregion
+
+        #region Canvas大小
+        private static Vector2 screenSize = new Vector2(1920,1080);
         #endregion
 
         #region 创建UI窗体相关
@@ -169,6 +175,8 @@ namespace FreeFramework.Editor
                     }
                     else 
                     {
+
+                        int needToDelet = -1;
                         for (int i = 0; i < groupSize; i++)
                         {
                             EditorGUILayout.BeginHorizontal();
@@ -177,16 +185,36 @@ namespace FreeFramework.Editor
 
                             if (EditorGUIUtility.isProSkin)
                             {
-                                GUILayout.Label($"<color=#00000000>口</color><b><color=#ffff00ff>{i + 1}.{groupProperty.GetArrayElementAtIndex(i).FindPropertyRelative("uiID").stringValue}</color></b>", style);
+                                GUILayout.Label($"<color=#00000000>口</color><b><color=#ffff00ff>{i + 1}.{groupProperty.GetArrayElementAtIndex(i).FindPropertyRelative("uiID").stringValue}</color></b>", style, GUILayout.MaxWidth(250));
                             }
                             else 
                             {
-                                GUILayout.Label($"<color=#00000000>口</color><b><color=#008000ff>{i + 1}.{groupProperty.GetArrayElementAtIndex(i).FindPropertyRelative("uiID").stringValue}</color></b>", style);
+                                GUILayout.Label($"<color=#00000000>口</color><b><color=#008000ff>{i + 1}.{groupProperty.GetArrayElementAtIndex(i).FindPropertyRelative("uiID").stringValue}</color></b>", style, GUILayout.MaxWidth(250));
+                            }
+
+                            if (GUILayout.Button("删除"))
+                            {
+                                if (EditorUtility.DisplayDialog("删除预制体和信息", "删除预制体文件，和UI配置表中的信息，注意该过程不可逆！", "确实", "取消"))
+                                {
+                                    needToDelet = i;
+                                    //删除
+                                    if (File.Exists($"{Application.dataPath}/Resources/{groupProperty.GetArrayElementAtIndex(i).FindPropertyRelative("uiPrefabPath").stringValue}.prefab"))
+                                    {
+                                        Debug.Log($"存在{Application.dataPath}/Resources/{groupProperty.GetArrayElementAtIndex(i).FindPropertyRelative("uiPrefabPath").stringValue}.prefab");
+                                        AssetDatabase.DeleteAsset($"Assets/Resources/{groupProperty.GetArrayElementAtIndex(i).FindPropertyRelative("uiPrefabPath").stringValue}.prefab");
+                                    }
+                                    else
+                                    {
+                                        Debug.LogWarning($"不存在预制体文件,路径Assets/Resources/{groupProperty.GetArrayElementAtIndex(i).FindPropertyRelative("uiPrefabPath").stringValue}.prefab");
+                                    }
+                                    groupProperty.DeleteArrayElementAtIndex(i);
+                                    uiObject.ApplyModifiedProperties();
+                                    AssetDatabase.Refresh();
+                                }
                             }
 
                             if (GUILayout.Button("定位"))
                             {
-                             
                                 var uiForm = AssetDatabase.LoadAssetAtPath<GameObject>($"Assets/Resources/{groupProperty.GetArrayElementAtIndex(i).FindPropertyRelative("uiPrefabPath").stringValue}.prefab");
                                 if (uiForm == null)
                                 {
@@ -195,6 +223,31 @@ namespace FreeFramework.Editor
                                 }
                                 EditorGUIUtility.PingObject(uiForm);
                             }
+
+                            if (GUILayout.Button("加载"))
+                            {
+                                var canvas = FindObjectOfType<UIManager>();
+                                if (canvas == null)
+                                {
+                                    EditorUtility.DisplayDialog("未找到物体", "未找到UI跟物体，需要点击<加载>按钮加载Canvas预制体！", "是");
+                                    return;
+                                }
+                                var objectAsset = AssetDatabase.LoadAssetAtPath<GameObject>($"Assets/Resources/{groupProperty.GetArrayElementAtIndex(i).FindPropertyRelative("uiPrefabPath").stringValue}.prefab");
+                                var obj = PrefabUtility.InstantiatePrefab(objectAsset) as GameObject;
+                                switch (uiFormType)
+                                {
+                                    case UIFormType.Fixed:
+                                        obj.transform.SetParent(canvas.transform.Find("Fixed"), false);
+                                        break;
+                                    case UIFormType.Normal:
+                                        obj.transform.SetParent(canvas.transform.Find("Normal"), false);
+                                        break;
+                                    case UIFormType.PopUp:
+                                        obj.transform.SetParent(canvas.transform.Find("PopUp"), false);
+                                        break;
+                                }
+                            }
+
                             EditorGUILayout.EndHorizontal();
                         }
                     }
@@ -219,7 +272,7 @@ namespace FreeFramework.Editor
                     }
                     else 
                     {
-
+                        int needToDelet = -1;
                         for (int i = 0; i < config.infoGroup.Count; i++)
                         {
                             EditorGUILayout.BeginHorizontal();
@@ -228,11 +281,33 @@ namespace FreeFramework.Editor
 
                             if (EditorGUIUtility.isProSkin)
                             {
-                                GUILayout.Label($"<color=#00000000>口</color><b><color=#ffff00ff>{i + 1}.{config.infoGroup[i].uiID}</color></b>", style);
+                                GUILayout.Label($"<color=#00000000>口</color><b><color=#ffff00ff>{i + 1}.{config.infoGroup[i].uiID}</color></b>", style, GUILayout.MaxWidth(250));
                             }
                             else
                             {
-                                GUILayout.Label($"<color=#00000000>口</color><b><color=#008000ff>{i + 1}.{config.infoGroup[i].uiID}</color></b>", style);
+                                GUILayout.Label($"<color=#00000000>口</color><b><color=#008000ff>{i + 1}.{config.infoGroup[i].uiID}</color></b>", style,GUILayout.MaxWidth(250));
+                            }
+
+                            if (GUILayout.Button("删除"))
+                            {
+                                if (EditorUtility.DisplayDialog("删除预制体和信息", "删除预制体文件，和UI配置表中的信息，注意该过程不可逆！", "确实", "取消"))
+                                {
+                                    needToDelet = i;
+                                    //删除
+                                    if (File.Exists($"{Application.dataPath}/Resources/{config.infoGroup[needToDelet].uiPrefabPath}.prefab"))
+                                    {
+                                        Debug.Log($"存在{Application.dataPath}/Resources/{config.infoGroup[needToDelet].uiPrefabPath}.prefab");
+                                        AssetDatabase.DeleteAsset($"Assets/Resources/{config.infoGroup[i].uiPrefabPath}.prefab");
+                                    }
+                                    else
+                                    {
+                                        Debug.LogWarning($"不存在预制体文件,路径Assets/Resources/{config.infoGroup[i].uiPrefabPath}.prefab");
+                                    }
+                                    config.infoGroup.RemoveAt(needToDelet);
+                                    var newContent = JsonUtility.ToJson(config);
+                                    File.WriteAllText(Application.dataPath + uiConfigPath + "UIFormsPath.json", newContent);
+                                    AssetDatabase.Refresh();
+                                }
                             }
 
                             if (GUILayout.Button("定位"))
@@ -245,6 +320,31 @@ namespace FreeFramework.Editor
                                 }
                                 EditorGUIUtility.PingObject(uiForm);
                             }
+
+                            if (GUILayout.Button("加载"))
+                            {
+                                var canvas = FindObjectOfType<UIManager>();
+                                if (canvas == null)
+                                {
+                                    EditorUtility.DisplayDialog("未找到物体", "未找到UI跟物体，需要点击<加载>按钮加载Canvas预制体！", "是");
+                                    return;
+                                }
+                                var objectAsset = AssetDatabase.LoadAssetAtPath<GameObject>($"Assets/Resources/{config.infoGroup[i].uiPrefabPath}.prefab");
+                                var obj = PrefabUtility.InstantiatePrefab(objectAsset) as GameObject;
+                                switch (uiFormType)
+                                {
+                                    case UIFormType.Fixed:
+                                        obj.transform.SetParent(canvas.transform.Find("Fixed"), false);
+                                        break;
+                                    case UIFormType.Normal:
+                                        obj.transform.SetParent(canvas.transform.Find("Normal"), false);
+                                        break;
+                                    case UIFormType.PopUp:
+                                        obj.transform.SetParent(canvas.transform.Find("PopUp"), false);
+                                        break;
+                                }
+                            }
+
                             EditorGUILayout.EndHorizontal();
 
                         }
@@ -262,25 +362,68 @@ namespace FreeFramework.Editor
 
          private void ShowOpenUICreate()
          {
-            GUILayout.BeginHorizontal();
             EditorGUILayout.LabelField("1.在场景中加载UICanvas根预制体：");
-            if (GUILayout.Button("加载"))
+            screenSize = EditorGUILayout.Vector2Field("宽、高(非必要不修改):", screenSize);
+            if (GUILayout.Button("创建"))
             {
-                //加载预制体
-                GameObject canvasPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Packages/com.freeqin.freeuiframework/Runtime/UIFrameworkPrefabs/UIManager/Canvas.prefab");
-                var sceneObj = PrefabUtility.InstantiatePrefab(canvasPrefab) as GameObject;
+                GameObject sceneObj = new GameObject();
+                var myCanvas = sceneObj.AddComponent<Canvas>();
+                myCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
+                var canvasScaler = sceneObj.AddComponent<CanvasScaler>();
+                canvasScaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+                canvasScaler.referenceResolution = screenSize;
+                canvasScaler.matchWidthOrHeight = 1f;
+                sceneObj.AddComponent<GraphicRaycaster>();
+                sceneObj.AddComponent<UIManager>();
+                sceneObj.name = "Canvas";
                 sceneObj.transform.SetAsLastSibling();
+                //创建Normal节点
+                GameObject normalNode = new GameObject();
+                normalNode.transform.SetParent(sceneObj.transform, false);
+                normalNode.name = "Normal";
+                var rectTransform = normalNode.AddComponent<RectTransform>();
+                rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, screenSize.x);
+                rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, screenSize.y);
+                //创建Fixed节点
+                GameObject fixedNode = new GameObject();
+                fixedNode.transform.SetParent(sceneObj.transform, false);
+                fixedNode.name = "Fixed";
+                var fixedRectTransform = fixedNode.AddComponent<RectTransform>();
+                fixedRectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, screenSize.x);
+                fixedRectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, screenSize.y);
+                //创建PopUp节点
+                GameObject popUpNode = new GameObject();
+                popUpNode.transform.SetParent(sceneObj.transform, false);
+                popUpNode.name = "PopUp";
+                var popUpRectTransform = popUpNode.AddComponent<RectTransform>();
+                popUpRectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, screenSize.x);
+                popUpRectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, screenSize.y);
+                //创建UIMask
+                GameObject uiMask = new GameObject();
+                uiMask.transform.SetParent(sceneObj.transform, false);
+                uiMask.name = "UIMask";
+                var uIMaskRectTransform = uiMask.AddComponent<RectTransform>();
+                uIMaskRectTransform.anchorMin = Vector2.zero;
+                uIMaskRectTransform.anchorMax = Vector2.one;
+                var maskImg = uiMask.AddComponent<UnityEngine.UI.Image>();
+                maskImg.color = new Color(0, 0, 0, 0);
+                maskImg.raycastTarget = false;
+                //创建EventSystem
+                GameObject eventSystem = new GameObject();
+                eventSystem.transform.SetParent(sceneObj.transform, false);
+                eventSystem.name = "EventSystem";
+                eventSystem.AddComponent<EventSystem>();
+                eventSystem.AddComponent<StandaloneInputModule>();
+                //常见UI相机
+                GameObject uiCamera = new GameObject();
+                uiCamera.name = "UICamera";
+                uiCamera.transform.SetParent(sceneObj.transform, false);
+                var camComponent = uiCamera.AddComponent<Camera>();
+                camComponent.depth = -1f;
                 UpdateConfigLoadType();
             }
-            //if (GUILayout.Button("定位资源文件"))
-            //{
-            //    //加载Canvas预制体
-            //    GameObject canvasPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Scripts/FreeFramework/UIFrameworkPrefabs/UIManager/Canvas.prefab");
-            //    EditorGUIUtility.PingObject(canvasPrefab);
-            //}
-            GUILayout.EndHorizontal();
-            EditorGUILayout.LabelField("2.创建UI窗体：");
 
+            EditorGUILayout.LabelField("2.创建UI窗体：");
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField("   UI窗体名称（必须为英文）：");
             uiFormName = EditorGUILayout.TextField(uiFormName);
@@ -369,7 +512,7 @@ namespace FreeFramework.Editor
             else 
             {
                 //在场景中生成一个预制体
-                var objectAsset = AssetDatabase.LoadAssetAtPath<GameObject>("Packages/com.freeqin.freeuiframework/Runtime/UIFrameworkPrefabs/UIManager/UIForm.prefab");
+                //var objectAsset = AssetDatabase.LoadAssetAtPath<GameObject>("Packages/com.freeqin.freeuiframework/Runtime/UIFrameworkPrefabs/UIManager/UIForm.prefab");
                 //找到场景中的Canvas
                 var canvas = FindObjectOfType<UIManager>();
                 if (canvas == null)
@@ -378,23 +521,30 @@ namespace FreeFramework.Editor
                     return;
                 }
 
-                var objScene = (GameObject)PrefabUtility.InstantiatePrefab(objectAsset);
-
+                //var objScene = (GameObject)PrefabUtility.InstantiatePrefab(objectAsset);
+                GameObject objScene = new GameObject();
+                var objRectTransform = objScene.AddComponent<RectTransform>();
                 switch (uiFormType)
                 {
                     case UIFormType.Fixed:
-                        objScene.transform.SetParent(canvas.transform.Find("Fixed"));
+                        objScene.transform.SetParent(canvas.transform.Find("Fixed"),false);
                         break;
                     case UIFormType.Normal:
-                        objScene.transform.SetParent(canvas.transform.Find("Normal"));
+                        objScene.transform.SetParent(canvas.transform.Find("Normal"), false);
                         break;
                     case UIFormType.PopUp:
-                        objScene.transform.SetParent(canvas.transform.Find("PopUp"));
+                        objScene.transform.SetParent(canvas.transform.Find("PopUp"), false);
                         break;
                 }
-                objScene.name = uiFormName;
+                objRectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, screenSize.x);
+                objRectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, screenSize.y);
+                objScene.name = uiFormName; 
+
                 objScene.transform.SetAsLastSibling();
                 objScene.AddComponent(aimType);
+
+                
+                #region 保存
                 var path = $"{Application.dataPath}/Resources/UI/UIPrefabs/{uiFormName}.prefab";
                 PrefabUtility.SaveAsPrefabAsset(objScene, path);
                 DestroyImmediate(objScene);
@@ -418,15 +568,17 @@ namespace FreeFramework.Editor
                 switch (uiFormType)
                 {
                     case UIFormType.Fixed:
-                        newObjScene.transform.SetParent(canvas.transform.Find("Fixed"));
+                        newObjScene.transform.SetParent(canvas.transform.Find("Fixed"),false);
                         break;
                     case UIFormType.Normal:
-                        newObjScene.transform.SetParent(canvas.transform.Find("Normal"));
+                        newObjScene.transform.SetParent(canvas.transform.Find("Normal"), false);
                         break;
                     case UIFormType.PopUp:
-                        newObjScene.transform.SetParent(canvas.transform.Find("PopUp"));
+                        newObjScene.transform.SetParent(canvas.transform.Find("PopUp"), false);
                         break;
                 }
+                #endregion
+                
             }
         }
 
@@ -640,17 +792,6 @@ namespace FreeFramework.Editor
             GUILayout.BeginHorizontal();
             EditorGUILayout.LabelField($"3.当前UI预制体存储路径：Assets/Resources/{UIConstant.uiPrefabAssetPath}(默认加载Resources文件夹)");
             GUILayout.EndHorizontal();
-
-            //去掉该功能
-            //if (GUILayout.Button("修改路径"))
-            //{
-            //    var scripts = AssetDatabase.LoadAssetAtPath<Object>(uiConstantScriptPath);
-            //    if (scripts == null)
-            //    {
-            //        Debug.Log("当前是空");
-            //    }
-            //    AssetDatabase.OpenAsset(scripts);
-            //}
         }
 
         /// <summary>
@@ -713,7 +854,6 @@ namespace FreeFramework.Editor
                     }
                 }
             }
-
             return type;
         } 
     }

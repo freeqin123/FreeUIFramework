@@ -96,7 +96,6 @@ namespace FreeFramework
         protected void ShowUI<T>() where T: IUIForm 
         {
             var uiName = typeof(T).Name;
-            Debug.Log(uiName);
             UIManager.Instance.ShowUIForm(uiName);
         }
 
