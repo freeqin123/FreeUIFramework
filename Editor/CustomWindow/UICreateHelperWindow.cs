@@ -64,7 +64,6 @@ namespace FreeFramework.Editor
             thisWindow.Show();
         }
 
-
         private void Awake()
         {
             //加载面板配置文件
@@ -107,7 +106,6 @@ namespace FreeFramework.Editor
                 configLoadType = uiManager.GetComponent<UIManager>().assetsType;
             }
         }
-
         private void OnDestroy()
         {
             //存储命名空间信息
@@ -155,7 +153,6 @@ namespace FreeFramework.Editor
             EditorGUILayout.Space();
         }
 
-
         private void ShowUIFormInfo() 
         {
             if (configLoadType == UIManager.LoadConfigType.UnityAssets)
@@ -194,7 +191,7 @@ namespace FreeFramework.Editor
 
                             if (GUILayout.Button("删除"))
                             {
-                                if (EditorUtility.DisplayDialog("删除预制体和信息", "删除预制体文件，和UI配置表中的信息，注意该过程不可逆！", "确实", "取消"))
+                                if (EditorUtility.DisplayDialog("删除预制体和信息", "删除预制体文件和UI配置表中的信息，注意该过程不可逆！", "确实", "取消"))
                                 {
                                     needToDelet = i;
                                     //删除
@@ -290,7 +287,7 @@ namespace FreeFramework.Editor
 
                             if (GUILayout.Button("删除"))
                             {
-                                if (EditorUtility.DisplayDialog("删除预制体和信息", "删除预制体文件，和UI配置表中的信息，注意该过程不可逆！", "确实", "取消"))
+                                if (EditorUtility.DisplayDialog("删除预制体和信息", "删除预制体文件和UI配置表中的信息，注意该过程不可逆！", "确实", "取消"))
                                 {
                                     needToDelet = i;
                                     //删除
@@ -346,18 +343,14 @@ namespace FreeFramework.Editor
                             }
 
                             EditorGUILayout.EndHorizontal();
-
                         }
                     }
-
                 }
                 else
                 {
                     EditorGUILayout.HelpBox("UI配置文件目前无内容", MessageType.Warning);
                 }
-
             }
-
         }
 
          private void ShowOpenUICreate()
@@ -493,11 +486,9 @@ namespace FreeFramework.Editor
                 }
 
                 Debug.Log($"创建窗体{uiFormName}");
-
                 CreateUIPrefabAndConfig();
             }
         }
-
 
         /// <summary>
         /// 创建UI预制体，UI创建
@@ -511,17 +502,12 @@ namespace FreeFramework.Editor
             }
             else 
             {
-                //在场景中生成一个预制体
-                //var objectAsset = AssetDatabase.LoadAssetAtPath<GameObject>("Packages/com.freeqin.freeuiframework/Runtime/UIFrameworkPrefabs/UIManager/UIForm.prefab");
-                //找到场景中的Canvas
                 var canvas = FindObjectOfType<UIManager>();
                 if (canvas == null)
                 {
                     EditorUtility.DisplayDialog("未找到物体", "未找到UI跟物体，需要点击<加载>按钮加载Canvas预制体！", "是");
                     return;
                 }
-
-                //var objScene = (GameObject)PrefabUtility.InstantiatePrefab(objectAsset);
                 GameObject objScene = new GameObject();
                 var objRectTransform = objScene.AddComponent<RectTransform>();
                 switch (uiFormType)
@@ -542,7 +528,6 @@ namespace FreeFramework.Editor
 
                 objScene.transform.SetAsLastSibling();
                 objScene.AddComponent(aimType);
-
                 
                 #region 保存
                 var path = $"{Application.dataPath}/Resources/UI/UIPrefabs/{uiFormName}.prefab";
@@ -616,15 +601,11 @@ namespace FreeFramework.Editor
             newInsertElement.FindPropertyRelative("uiID").stringValue = prefabId;
             newInsertElement.FindPropertyRelative("uiPrefabPath").stringValue = prefabPath;
             uiObject.ApplyModifiedProperties();
-
         }
 
         private void UpdateJsonUnityConfig(string prefabId,string prefabPath) 
-        {
-            Debug.Log("更新配置文件");
-            
+        {   
             UIConfigObject config = new UIConfigObject();
-
             if (File.Exists(jsonPath))
             {
                 var fileContent = File.ReadAllText( Application.dataPath + uiConfigPath + "UIFormsPath.json");
@@ -642,22 +623,17 @@ namespace FreeFramework.Editor
                             return;
                         }
                     }
-
                     config.infoGroup.Add(new UIConfigInfoBase(prefabId,prefabPath));
                 }
-
             }
             else 
             {
-
                 config.infoGroup = new List<UIConfigInfoBase>();
                 config.infoGroup.Add(new UIConfigInfoBase(prefabId,prefabPath));
             }
 
             string newContent = JsonUtility.ToJson(config);
-
             File.WriteAllText(Application.dataPath + uiConfigPath + "UIFormsPath.json", newContent);
-
             AssetDatabase.Refresh();
         }
 
@@ -691,7 +667,7 @@ namespace FreeFramework.Editor
             EditorGUILayout.LabelField("1.创建Json配置文件:");
             if (GUILayout.Button("创建"))
             {
-                if (System.IO.File.Exists(jsonPath))
+                if (File.Exists(jsonPath))
                 {
                     EditorUtility.DisplayDialog("无需创建", "已存在配置文件，无需进行创建！", "确定");
                 }
@@ -703,7 +679,7 @@ namespace FreeFramework.Editor
                     jsonData.infoGroup.Add(new UIConfigInfoBase("ID（脚本名和ID名保持一致）", "加载路径，默认根目录为Resources"));
                     var jsonContent = JsonUtility.ToJson(jsonData);
                     //写入
-                    System.IO.File.WriteAllText(jsonPath, jsonContent);
+                    File.WriteAllText(jsonPath, jsonContent);
                     //刷新
                     AssetDatabase.Refresh();
                     Debug.Log("<color=green>创建成功</color>");
@@ -815,7 +791,6 @@ namespace FreeFramework.Editor
             }
             return false;
         }
-
 
         /// <summary>
         /// 判断字符串中是否带有中文字符
